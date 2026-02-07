@@ -32,6 +32,32 @@
 		`animation-name: ${resolvedAnimation}; animation-duration: ${animationDuration}; animation-timing-function: ${animationTimingFunction}; animation-iteration-count: 1; white-space: pre-wrap;`
 	);
 
+	// Sanitize HTML to prevent XSS
+	const ALLOWED_TAGS = new Set([
+		'br', 'hr', 'div', 'span', 'p', 'b', 'i', 'u', 's', 'em', 'strong',
+		'sub', 'sup', 'mark', 'small', 'del', 'ins', 'abbr', 'details', 'summary',
+		'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+		'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
+		'blockquote', 'pre', 'code', 'kbd', 'var', 'samp',
+		'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+		'a', 'img', 'figure', 'figcaption', 'picture', 'source',
+		'section', 'article', 'aside', 'header', 'footer', 'nav', 'main',
+		'ruby', 'rt', 'rp', 'wbr', 'time', 'cite', 'dfn', 'q'
+	]);
+
+	function sanitizeHtml(html: string): string {
+		// Strip event handler attributes (on*)
+		let sanitized = html.replace(/<([a-zA-Z][a-zA-Z0-9]*)\s([^>]*?)>/g, (match, tag, attrs) => {
+			const cleanAttrs = attrs.replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+			return `<${tag} ${cleanAttrs}>`;
+		});
+		// Strip script, style, iframe, object, embed, form, input, textarea, select, button tags
+		sanitized = sanitized.replace(/<\/?(?:script|style|iframe|object|embed|form|input|textarea|select|button|link|meta|base)\b[^>]*>/gi, '');
+		// Strip javascript: and data: URLs in href/src/action attributes
+		sanitized = sanitized.replace(/(?:href|src|action)\s*=\s*(?:"[^"]*(?:javascript|data|vbscript):[^"]*"|'[^']*(?:javascript|data|vbscript):[^']*')/gi, '');
+		return sanitized;
+	}
+
 	// Hide partial custom component tags during streaming
 	function hidePartialCustomComponents(input: string): string {
 		if (!input || Object.keys(customComponents).length === 0) return input;
@@ -123,7 +149,7 @@
 				{/if}
 			</del>
 		{:else if token.type === 'html'}
-			{@html token.raw}
+			{@html sanitizeHtml(token.raw)}
 		{:else if token.type === 'br'}
 			<br />
 		{:else if token.type === 'escape'}
@@ -246,7 +272,7 @@
 				</tbody>
 			</table>
 		{:else if token.type === 'html'}
-			{@html token.raw}
+			{@html sanitizeHtml(token.raw)}
 		{:else if token.type === 'text'}
 			{#if 'tokens' in token && token.tokens}
 				{@render renderInline(token.tokens)}
