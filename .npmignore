@@ -1,0 +1,8 @@
+src/
+static/
+.svelte-kit/
+node_modules/
+vite.config.ts
+svelte.config.js
+tsconfig.json
+.gitignore
