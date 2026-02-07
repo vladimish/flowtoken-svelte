@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { setContext } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 	import { Lexer, type Token, type Tokens } from 'marked';
 	import SplitText from './SplitText.svelte';
 	import AnimatedImage from './AnimatedImage.svelte';
 	import DefaultCode from './DefaultCode.svelte';
+	import CodeRenderer from './CodeRenderer.svelte';
 	import { animations } from '../utils/animations.js';
 
 	let {
@@ -13,7 +15,8 @@
 		animationDuration = '1s',
 		animationTimingFunction = 'ease-in-out',
 		customComponents = {},
-		imgHeight = '20rem'
+		imgHeight = '20rem',
+		codeBlockComponent = undefined
 	}: {
 		content: string;
 		sep?: string;
@@ -22,6 +25,7 @@
 		animationTimingFunction?: string;
 		customComponents?: Record<string, any>;
 		imgHeight?: string;
+		codeBlockComponent?: Component<{ code: string; language: string; children?: Snippet }>;
 	} = $props();
 
 	const resolvedAnimation = $derived(
@@ -235,13 +239,25 @@
 				</ul>
 			{/if}
 		{:else if token.type === 'code'}
-			<DefaultCode
-				text={token.text}
-				lang={token.lang || ''}
-				animation={resolvedAnimation}
-				{animationDuration}
-				{animationTimingFunction}
-			/>
+			{#if codeBlockComponent}
+				<svelte:component this={codeBlockComponent} code={token.text} language={token.lang || ''}>
+					<CodeRenderer
+						code={token.text}
+						language={token.lang || ''}
+						animation={resolvedAnimation}
+						{animationDuration}
+						{animationTimingFunction}
+					/>
+				</svelte:component>
+			{:else}
+				<DefaultCode
+					text={token.text}
+					lang={token.lang || ''}
+					animation={resolvedAnimation}
+					{animationDuration}
+					{animationTimingFunction}
+				/>
+			{/if}
 		{:else if token.type === 'hr'}
 			<hr style={animStyle} />
 		{:else if token.type === 'table'}

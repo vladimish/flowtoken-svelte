@@ -20,6 +20,14 @@
 		animationIterationCount?: number;
 	} = $props();
 
+	// Animations using transform/width need inline-block; others work with inline
+	const transformAnimations = new Set([
+		'ft-slideUp', 'ft-wave', 'ft-elastic', 'ft-bounceIn',
+		'ft-rotateIn', 'ft-fadeAndScale', 'ft-slideInFromLeft',
+		'ft-typewriter', 'ft-dropIn'
+	]);
+	const display = $derived(transformAnimations.has(animation) ? 'inline-block' : 'inline');
+
 	// Mutable state for diff mode — persists across renders
 	let prevInput = '';
 	let tokensWithSources: TokenWithSource[] = [];
@@ -80,6 +88,6 @@
 
 {#each tokens as token (token.source)}
 	<span
-		style="animation-name: {animation}; animation-duration: {animationDuration}; animation-timing-function: {animationTimingFunction}; animation-iteration-count: {animationIterationCount}; white-space: pre-wrap; display: inline-block;"
+		style="animation-name: {animation}; animation-duration: {animationDuration}; animation-timing-function: {animationTimingFunction}; animation-iteration-count: {animationIterationCount}; white-space: pre-wrap; display: {display};"
 	>{token.text}</span>
 {/each}
