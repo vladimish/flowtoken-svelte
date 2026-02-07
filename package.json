@@ -1,6 +1,6 @@
 {
   "name": "@vladimish/flowtoken-svelte",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Svelte 5 port of FlowToken — animate streaming LLM text with CSS animations",
   "license": "ISC",
   "author": "vladimish",
